@@ -3,7 +3,7 @@ services:
     container_name: postgres
     image: postgres:17.2-bookworm
     build: ./postgres
-    restart: always
+    restart: unless-stopped
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -11,5 +11,5 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - ./r18-db:/var/lib/postgresql/data
+      - ./r18-db:/Volumes/nVME/priv/.stash/scrapers/community/R18dev_SQL/docker/stash-box-db/r18.sql
       - ./setup_db.sh:/setup_db.sh
