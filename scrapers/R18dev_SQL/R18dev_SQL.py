@@ -1,31 +1,23 @@
+# pylint: disable=invalid-name, line-too-long, too-many-locals, too-many-branches, too-many-statements, missing-docstring, redefined-outer-name, too-many-nested-blocks, too-many-boolean-expressions, unspecified-encoding, superfluous-parens, bare-except, singleton-comparison, missing-module-docstring
+
 # -*- coding: UTF-8 -*-
-import sys, json, re, csv
-import psycopg2
+import csv
 import io
+import json
+import re
+import sys
+
+import psycopg2
+
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
-
-def log(*s):
-    print(*s, file=sys.stderr)
-
-try:
-    import psycopg2
-except ModuleNotFoundError:
-    log("ERROR | psycopg2 not found, try pip install psycopg2-binary")
-    sys.exit(1)
-
-if(sys.platform=='win32'):
-    ensure_ascii=True
-else:
-    ensure_ascii=False
-
 # Set Language
-LANG='JA' # JA or EN
+LANG='EN' # JA or EN
 
 service_code = '%'
 # Uncomment the following line to force service_code='digital'
 # service_code = 'digital'
 # Uncomment the following line to force service_code='mono'
-# service_code = 'mono' 
+# service_code = 'mono'
 
 # If True, uses label instead of maker for studio (eg: Moodyz Acid instead of Moodyz)
 use_label_as_studio = False
@@ -40,7 +32,7 @@ def get_content_id(dvd_code, service_code='%'):
     cursor = conn.cursor()
     cursor.execute(f"""
                    SELECT dvd_id, content_id, service_code
-                   FROM public.derived_video 
+                   FROM public.derived_video
                    WHERE UPPER(dvd_id)='{dvd_code}' AND service_code like '{service_code}'
                    ORDER BY dvd_id ASC, service_code ASC
                    """)
@@ -53,9 +45,9 @@ def get_scene_info(content_id, service_code='%'):
     cursor = conn.cursor()
     cursor.execute(f"""
                     SELECT title_ja, title_en, MT.target_en, comment_ja, comment_en, release_date, jacket_full_url, maker_id, label_id, series_id, dvd_id, service_code
-                    FROM derived_video 
+                    FROM derived_video
                     LEFT JOIN machine_translation MT ON derived_video.title_ja = MT.source_ja
-                    WHERE content_id='{content_id}' AND service_code like '{service_code}' 
+                    WHERE content_id='{content_id}' AND service_code like '{service_code}'
                     ORDER BY dvd_id ASC, service_code ASC
                    """)
     result = cursor.fetchone()
@@ -100,7 +92,7 @@ def get_tags(content_id):
                     FROM public.derived_video_category VC
                     LEFT JOIN public.derived_category C ON VC.category_id=C.id
                     LEFT JOIN machine_translation MT ON C.name_ja = MT.source_ja
-                    WHERE VC.content_id = '{content_id}' 
+                    WHERE VC.content_id = '{content_id}'
                    """)
     result = cursor.fetchall()
     cursor.close()
@@ -167,7 +159,7 @@ if (sys.argv[1] == "sceneByName"):
     if(re.search(SUPER_DUPER_JAV_CODE_REGEX,query_string, flags=re.IGNORECASE)):
         dvd_code = re.search(SUPER_DUPER_JAV_CODE_REGEX,query_string, flags=re.IGNORECASE).group(1)+'-'+re.search(SUPER_DUPER_JAV_CODE_REGEX,query_string, flags=re.IGNORECASE).group(2)
         dvd_code_found = True
-        log(sys.argv[1],"| DVD CODE: "+dvd_code)        
+        log(sys.argv[1],"| DVD CODE: "+dvd_code)
     else:
         content_id = query_string
         log(sys.argv[1],"| DVD CODE NOT FOUND")
@@ -267,7 +259,7 @@ maker_id = scene_info[7]
 label_id = scene_info[8]
 series_id = scene_info[9]
 code = scene_info[10]
-    
+
 actress_info = get_actress_info(content_id)
 actress_ja = [{'name': i[0], 'urls': ['https://r18.dev/videos/vod/movies/list/?id='+str(i[3])+'&type=actress']} for i in actress_info]
 actress_en = [{'name': i[2], 'urls': ['https://r18.dev/videos/vod/movies/list/?id='+str(i[3])+'&type=actress']} if i[1] is None else {'name': i[1], 'url': 'https://r18.dev/videos/vod/movies/list/?id='+str(i[3])+'&type=actress'} for i in actress_info]
@@ -344,8 +336,8 @@ if (LANG == 'JA'):
     if series_ja is not None:
         res["groups"] = [series_ja]
 elif (LANG == 'EN'):
-    if title_en is not None:
-        res["title"] = title_en
+    if title_en is None:
+        res["title"] = code
     if details_en is not None:
         res["details"] = details_en
     if actress_en is not None:
@@ -365,6 +357,6 @@ elif (LANG == 'EN'):
 conn.close()
 log(res["performers"])
 if (sys.argv[1] == "sceneByName"):
-    print(json.dumps([res],ensure_ascii=ensure_ascii)) 
+    print(json.dumps([res],ensure_ascii=False))
 else:
-    print(json.dumps(res,ensure_ascii=ensure_ascii)) 
+    print(json.dumps(res,ensure_ascii=False))
