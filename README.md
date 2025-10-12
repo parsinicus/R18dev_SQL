@@ -2,7 +2,7 @@
 
 # Database Setup
 
-This scraper requires access to a PostgreSQL server with R18.dev data. 
+This scraper requires access to a PostgreSQL server with R18.dev data.
 
 A docker compose file and a bash script to fetch and import the latest R18.dev database dump can be found under `docker/`. Simply run `docker compose up --build -d` and then `docker exec -it postgres /setup_db.sh` to set up a PostgreSQL database with R18.dev data. To update your database to the latest snapshot, rerun `docker exec -it postgres /setup_db.sh` after restarting the docker image.
 
