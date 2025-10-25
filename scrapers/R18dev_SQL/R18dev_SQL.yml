@@ -1,7 +1,7 @@
 name: "R18dev_SQL"
 # requires: py_common
 
-sceneByName:  
+sceneByName:
   action: script
   script:
     - python
